@@ -22,7 +22,7 @@ def a():
 In[1]:
 ```
 import nbimporter
-import from foo import a
+from foo import a #import from notebook
 
 a()
 ```
