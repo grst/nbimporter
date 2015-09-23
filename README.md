@@ -12,7 +12,7 @@ Check out that notebook for full documentation and to understand the backgrounds
 **Notebook foo.ipynb:**
 
 In[1]:
-```
+```python
 def a(): 
     print("Hello World"!)
 ```
@@ -20,7 +20,7 @@ def a():
 **Notebook bar.ipynb:**
 
 In[1]:
-```
+```python
 import nbimporter
 from foo import a #import from notebook
 
