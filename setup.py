@@ -8,5 +8,5 @@ setup(name='nbimporter',
       author='Adam Schwartz',
       author_email='adam@anschwa.com',
       py_modules=['nbimporter', 'display_nb'],
-      url='https://github.com/anschwa/nbimporter',
+      url='https://github.com/grst/nbimporter',
  )
