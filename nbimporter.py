@@ -1,15 +1,17 @@
 """
-Module directly collated from
+Allow for importing of IPython Notebooks as modules from Jupyter v4.
+
+Updated from module collated here:
 https://github.com/adrn/ipython/blob/master/examples/Notebook/Importing%20Notebooks.ipynb
 """
 
 import io, os, sys, types
-from IPython.nbformat import current
+import nbformat
+from IPython import get_ipython
 from IPython.core.interactiveshell import InteractiveShell
 
 def find_notebook(fullname, path=None):
-    """find a notebook, given its fully qualified name
-    and an optional path
+    """find a notebook, given its fully qualified name and an optional path
 
     This turns "foo.bar" into "foo/bar.ipynb"
     and tries turning "Foo_Bar" into "Foo Bar" if Foo_Bar
@@ -27,8 +29,9 @@ def find_notebook(fullname, path=None):
         if os.path.isfile(nb_path):
             return nb_path
 
+
 class NotebookLoader(object):
-    """Module Loader for IPython Notebooks"""
+    """Module Loader for Jupyter Notebooks"""
     def __init__(self, path=None):
         self.shell = InteractiveShell.instance()
         self.path = path
@@ -37,11 +40,13 @@ class NotebookLoader(object):
         """import a notebook as a module"""
         path = find_notebook(fullname, self.path)
 
-        print ("importing IPython notebook from %s" % path)
+        print ("importing Jupyter notebook from %s" % path)
 
         # load the notebook object
+        nb_version = nbformat.version_info[0]
+        
         with io.open(path, 'r', encoding='utf-8') as f:
-            nb = current.read(f, 'json')
+            nb = nbformat.read(f, nb_version)
 
 
         # create the module and add it to sys.modules
@@ -50,26 +55,29 @@ class NotebookLoader(object):
         mod = types.ModuleType(fullname)
         mod.__file__ = path
         mod.__loader__ = self
+        mod.__dict__['get_ipython'] = get_ipython
         sys.modules[fullname] = mod
 
         # extra work to ensure that magics that would affect the user_ns
         # actually affect the notebook module's ns
         save_user_ns = self.shell.user_ns
         self.shell.user_ns = mod.__dict__
-
+                        
         try:
-          for cell in nb.worksheets[0].cells:
-            if cell.cell_type == 'code' and cell.language == 'python':
-                # transform the input to executable Python
-                code = self.shell.input_transformer_manager.transform_cell(cell.input)
-                # run the code in themodule
-                exec(code, mod.__dict__)
+            if nb.metadata.kernelspec.language == 'python':
+              for cell in nb.cells:
+                if cell.cell_type == 'code':
+                    # transform the input to executable Python
+                    code = self.shell.input_transformer_manager.transform_cell(cell.source)
+                    # run the code in themodule
+                    exec(code, mod.__dict__)
         finally:
             self.shell.user_ns = save_user_ns
         return mod
 
+
 class NotebookFinder(object):
-    """Module finder that locates IPython Notebooks"""
+    """Module finder that locates Jupyter Notebooks"""
     def __init__(self):
         self.loaders = {}
 
@@ -86,5 +94,6 @@ class NotebookFinder(object):
         if key not in self.loaders:
             self.loaders[key] = NotebookLoader(path)
         return self.loaders[key]
-
+    
+    
 sys.meta_path.append(NotebookFinder())
