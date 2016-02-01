@@ -14,7 +14,7 @@ Check out that notebook for full documentation and to understand the backgrounds
 In[1]:
 ```python
 def a(): 
-    print("Hello World"!)
+    print("Hello World!")
 ```
 
 **Notebook bar.ipynb:**
