@@ -84,10 +84,10 @@ class NotebookLoader(object):
 
         # Only do something if it's a python notebook
         if nb.metadata.kernelspec.language != 'python':
-            print("Ignoring '%s': not a python notebook.")
+            print("Ignoring '%s': not a python notebook." % path)
             return mod
 
-        print ("Importing Jupyter notebook from %s" % path)
+        print("Importing Jupyter notebook from %s" % path)
         sys.modules[fullname] = mod
 
         # extra work to ensure that magics that would affect the user_ns
