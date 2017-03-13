@@ -11,9 +11,9 @@ imports code from other modules and notebooks. This behaviour can be
 disabled by setting nbimporter.options['only_defs'] = False.
 
 Furthermore, in order to provide per-notebook initialisation, if a
-special function __init__() is defined in the notebook, it will be
+special function __nbinit__() is defined in the notebook, it will be
 executed the first time an import statement is. This behaviour can be
-disabled by setting nbimporter.options['run_init'] = False.
+disabled by setting nbimporter.options['run_nbinit'] = False.
 
 Finally, you can set the encoding of the notebooks with
 nbimporter.options['encoding']. The default is 'utf-8'.
@@ -24,7 +24,7 @@ import nbformat
 from IPython import get_ipython
 from IPython.core.interactiveshell import InteractiveShell
 
-options = {'only_defs': True, 'run_init': True, 'encoding': 'utf-8'}
+options = {'only_defs': True, 'run_nbinit': True, 'encoding': 'utf-8'}
 
 def find_notebook(fullname, path=None):
     """ Find a notebook, given its fully qualified name and an optional path
@@ -112,10 +112,10 @@ class NotebookLoader(object):
             self.shell.user_ns = save_user_ns
 
         # Run any initialisation if available, but only once
-        if options['run_init'] and '__init_done__' not in mod.__dict__:
+        if options['run_nbinit'] and '__nbinit_done__' not in mod.__dict__:
             try:
-                mod.__init__()
-                mod.__init_done__ = True
+                mod.__nbinit__()
+                mod.__nbinit_done__ = True
             except (KeyError, AttributeError) as _:
                 pass
 

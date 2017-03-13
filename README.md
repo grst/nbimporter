@@ -42,9 +42,9 @@ imports code from other modules and notebooks. This behaviour can be
 disabled by setting `nbimporter.options['only_defs'] = False`.
 
 Furthermore, in order to provide per-notebook initialisation, if a
-special function `__init__()` is defined in the notebook, it will be
+special function `__nbinit__()` is defined in the notebook, it will be
 executed the first time an import statement is. This behaviour can be
-disabled by setting `nbimporter.options['run_init'] = False`.
+disabled by setting `nbimporter.options['run_nbinit'] = False`.
 
 Finally, you can set the encoding of the notebooks with
 `nbimporter.options['encoding']`. The default is `'utf-8'`.
