@@ -112,7 +112,7 @@ class NotebookLoader(object):
             self.shell.user_ns = save_user_ns
 
         # Run any initialisation if available, but only once
-        if options['run_init'] and not mod.__dict__.has_key('__init_done__'):
+        if options['run_init'] and '__init_done__' not in mod.__dict__:
             try:
                 mod.__init__()
                 mod.__init_done__ = True
