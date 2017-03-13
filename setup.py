@@ -3,10 +3,10 @@
 from distutils.core import setup
 
 setup(name='nbimporter',
-      version='0.2',
+      version='0.3.0',
       description='Import IPython notebooks as modules',
-      author='Adam Schwartz',
-      author_email='adam@anschwa.com',
+      author='Gregor Sturm',
+      author_email='mail@gregor-sturm.de',
       py_modules=['nbimporter', 'display_nb'],
       url='https://github.com/grst/nbimporter',
  )
