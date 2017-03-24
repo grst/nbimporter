@@ -3,15 +3,31 @@ Allow for importing of IPython Notebooks as modules from Jupyter v4.
 
 Updated from module collated here:
 https://github.com/adrn/ipython/blob/master/examples/Notebook/Importing%20Notebooks.ipynb
+
+Importing from a notebook is different from a module: because one
+typically keeps many computations and tests besides exportable defs,
+here we only run code which either defines a function or a class, or
+imports code from other modules and notebooks. This behaviour can be
+disabled by setting nbimporter.options['only_defs'] = False.
+
+Furthermore, in order to provide per-notebook initialisation, if a
+special function __nbinit__() is defined in the notebook, it will be
+executed the first time an import statement is. This behaviour can be
+disabled by setting nbimporter.options['run_nbinit'] = False.
+
+Finally, you can set the encoding of the notebooks with
+nbimporter.options['encoding']. The default is 'utf-8'.
 """
 
-import io, os, sys, types
+import io, os, sys, types, ast
 import nbformat
 from IPython import get_ipython
 from IPython.core.interactiveshell import InteractiveShell
 
+options = {'only_defs': True, 'run_nbinit': True, 'encoding': 'utf-8'}
+
 def find_notebook(fullname, path=None):
-    """find a notebook, given its fully qualified name and an optional path
+    """ Find a notebook, given its fully qualified name and an optional path
 
     This turns "foo.bar" into "foo/bar.ipynb"
     and tries turning "Foo_Bar" into "Foo Bar" if Foo_Bar
@@ -30,8 +46,20 @@ def find_notebook(fullname, path=None):
             return nb_path
 
 
+class CellDeleter(ast.NodeTransformer):
+    """ Removes all nodes from an AST which are not suitable
+    for exporting out of a notebook. """
+    def visit(self, node):
+        """ Visit a node. """
+        if node.__class__.__name__ in ['Module', 'FunctionDef', 'ClassDef',
+                                       'Import', 'ImportFrom']:
+            return node
+        return None
+
+
 class NotebookLoader(object):
-    """Module Loader for Jupyter Notebooks"""
+    """ Module Loader for Jupyter Notebooks. """
+
     def __init__(self, path=None):
         self.shell = InteractiveShell.instance()
         self.path = path
@@ -40,14 +68,11 @@ class NotebookLoader(object):
         """import a notebook as a module"""
         path = find_notebook(fullname, self.path)
 
-        print ("importing Jupyter notebook from %s" % path)
-
         # load the notebook object
         nb_version = nbformat.version_info[0]
         
-        with io.open(path, 'r', encoding='utf-8') as f:
+        with io.open(path, 'r', encoding=options['encoding']) as f:
             nb = nbformat.read(f, nb_version)
-
 
         # create the module and add it to sys.modules
         # if name in sys.modules:
@@ -56,6 +81,13 @@ class NotebookLoader(object):
         mod.__file__ = path
         mod.__loader__ = self
         mod.__dict__['get_ipython'] = get_ipython
+
+        # Only do something if it's a python notebook
+        if nb.metadata.kernelspec.language != 'python':
+            print("Ignoring '%s': not a python notebook." % path)
+            return mod
+
+        print("Importing Jupyter notebook from %s" % path)
         sys.modules[fullname] = mod
 
         # extra work to ensure that magics that would affect the user_ns
@@ -64,15 +96,29 @@ class NotebookLoader(object):
         self.shell.user_ns = mod.__dict__
                         
         try:
-            if nb.metadata.kernelspec.language == 'python':
-              for cell in nb.cells:
-                if cell.cell_type == 'code':
-                    # transform the input to executable Python
-                    code = self.shell.input_transformer_manager.transform_cell(cell.source)
-                    # run the code in themodule
-                    exec(code, mod.__dict__)
+            deleter = CellDeleter()
+            for cell in filter(lambda c: c.cell_type == 'code', nb.cells):
+                # transform the input into executable Python
+                code = self.shell.input_transformer_manager.transform_cell(cell.source)
+                if options['only_defs']:
+                    # Remove anything that isn't a def or a class
+                    tree = deleter.generic_visit(ast.parse(code))
+                else:
+                    tree = ast.parse(code)
+                # run the code in the module
+                codeobj = compile(tree, filename=path, mode='exec')
+                exec(codeobj, mod.__dict__)
         finally:
             self.shell.user_ns = save_user_ns
+
+        # Run any initialisation if available, but only once
+        if options['run_nbinit'] and '__nbinit_done__' not in mod.__dict__:
+            try:
+                mod.__nbinit__()
+                mod.__nbinit_done__ = True
+            except (KeyError, AttributeError) as _:
+                pass
+
         return mod
 
 
