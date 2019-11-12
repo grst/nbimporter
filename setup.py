@@ -8,5 +8,6 @@ setup(name='nbimporter',
       author='Gregor Sturm',
       author_email='mail@gregor-sturm.de',
       py_modules=['nbimporter', 'display_nb'],
+      license="BSD 3-clause",
       url='https://github.com/grst/nbimporter',
  )
