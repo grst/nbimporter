@@ -69,7 +69,7 @@ class NotebookLoader(object):
         path = find_notebook(fullname, self.path)
 
         # load the notebook object
-        nb_version = nbformat.version_info[0]
+        nb_version = nbformat.current_nbformat
         
         with io.open(path, 'r', encoding=options['encoding']) as f:
             nb = nbformat.read(f, nb_version)
