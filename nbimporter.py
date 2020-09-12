@@ -83,7 +83,7 @@ class NotebookLoader(object):
         mod.__dict__['get_ipython'] = get_ipython
 
         # Only do something if it's a python notebook
-        if ('python' not in nb.metadata.kernelspec.language):
+        if 'python' not in nb.metadata.kernelspec.language:
             print("Ignoring '%s': not a python notebook." % path)
             return mod
 
