@@ -3,7 +3,7 @@
 from setuptools import setup
 
 setup(name='nbimporter',
-      version='0.3.2',
+      version='0.3.3',
       description='Import IPython notebooks as modules',
       author='Gregor Sturm',
       author_email='mail@gregor-sturm.de',
