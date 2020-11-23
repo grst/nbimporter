@@ -87,7 +87,7 @@ class NotebookLoader(object):
             print("Ignoring '%s': not a python notebook." % path)
             return mod
 
-        print("Importing Jupyter notebook from %s" % path)
+        # print("Importing Jupyter notebook from %s" % path)
         sys.modules[fullname] = mod
 
         # extra work to ensure that magics that would affect the user_ns
